@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, topic } = req.body;
+    const { message, topic, history } = req.body;
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -15,15 +15,19 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-4.1-mini",
         messages: [
-          {
-            role: "system",
-            content: "You are a confident, sharp, slightly witty dating coach. Keep responses concise and actionable."
-          },
-          {
-            role: "user",
-            content: `${topic}\n\n${message}`
-          }
-        ],
+  {
+    role: "system",
+    content: "You are a confident, sharp, slightly witty dating coach. Keep responses concise and actionable."
+  },
+  ...history.map(m => ({
+    role: m.role === "assistant" ? "assistant" : "user",
+    content: m.text
+  })),
+  {
+    role: "user",
+    content: `${topic}\n\n${message}`
+  }
+],
         max_tokens: 200
       }),
     });
